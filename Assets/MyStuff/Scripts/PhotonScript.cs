@@ -4,18 +4,22 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using System;
 
 public class PhotonScript : MonoBehaviourPunCallbacks
 {
     string gameVersion = "1";
     bool isConnecting;
+    bool refreshing = true;
 
     string RoomName;
+    string serverlist;
 
     public TMP_Text ServerList;
 
     public List<RoomInfo> TheRoomList;
     public GameObject Canvas;
+    
 
     private void Awake()
     {
@@ -73,11 +77,15 @@ public class PhotonScript : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        Debug.Log("bla");
-        ServerList.text = string.Empty;
+        serverlist = string.Empty;
         foreach (RoomInfo a in roomList)
         {
-            ServerList.text += $"-{a.Name}-";
+            serverlist += $"{a.Name}"+ Environment.NewLine;
+        }
+        if (refreshing)
+        {
+            ServerList.text = serverlist;
+            refreshing = false;
         }
     }
 
@@ -96,11 +104,18 @@ public class PhotonScript : MonoBehaviourPunCallbacks
 
     public void MYRefresh()
     {
-        PhotonNetwork.LeaveLobby();
+        if (PhotonNetwork.InLobby == true)
+        {
+            refreshing = true;
+            PhotonNetwork.LeaveLobby();
+        }
     }
     public override void OnLeftLobby()
     {
-        PhotonNetwork.JoinLobby();
+        if (refreshing)
+        {
+            PhotonNetwork.JoinLobby();
+        }
     }
 
 
